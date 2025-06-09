@@ -606,6 +606,7 @@
                 this.selectedGenres = [];
                 this.selectedMood = null;
                 this.currentPage = 1;
+                this.API_URL = 'https://backend-movie-recomendation.vercel.app';
                 this.genres = [
                     "Action", "Adventure", "Animation", "Comedy", "Crime", "Documentary",
                     "Drama", "Family", "Fantasy", "Horror", "Mystery", "Romance",
@@ -740,7 +741,7 @@
                 document.getElementById('loadingSection').classList.remove('hidden');
 
                 try {
-                    const response = await fetch('http://localhost:3000/api/recommend', {
+                    const response = await fetch(`${this.API_URL}/api/recommend`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
