@@ -828,6 +828,7 @@
                         <label class="custom-radio"><input type="radio" name="contentType" value="" checked> All</label>
                         <label class="custom-radio"><input type="radio" name="contentType" value="movies"> Movies Only</label>
                         <label class="custom-radio"><input type="radio" name="contentType" value="tv_series"> TV Series Only</label>
+                        <label class="custom-radio"><input type="radio" name="contentType" value="music"> Music Only</label>
                     </div>
                 </div>
                 <!-- Region Filter -->
@@ -883,10 +884,14 @@
                 this.currentPage = 1;
                 this.shownMovies = JSON.parse(localStorage.getItem('shownMovies') || '[]');
                 this.API_URL = 'https://backend-movie-recomendation.vercel.app';
-                this.genres = [
+                this.movieGenres = [
                     "Action", "Adventure", "Animation", "Comedy", "Crime", "Documentary",
                     "Drama", "Family", "Fantasy", "Horror", "Mystery", "Romance",
                     "Sci-Fi", "Thriller", "War", "Western"
+                ];
+                this.musicGenres = [
+                    "Rock", "Pop", "Hip Hop", "Jazz", "Classical", "Electronic",
+                    "R&B", "Country", "Blues", "Metal", "Folk", "Indie"
                 ];
                 this.moods = [
                     { id: "feel-good", emoji: "😊", label: "Feel Good" },
@@ -896,7 +901,11 @@
                     { id: "inspiring", emoji: "🌟", label: "Inspiring" },
                     { id: "funny", emoji: "😂", label: "Funny" },
                     { id: "emotional", emoji: "🥹", label: "Emotional" },
-                    { id: "adventurous", emoji: "🏃", label: "Adventurous" }
+                    { id: "adventurous", emoji: "🏃", label: "Adventurous" },
+                    { id: "energetic", emoji: "⚡", label: "Energetic" },
+                    { id: "relaxed", emoji: "😌", label: "Relaxed" },
+                    { id: "nostalgic", emoji: "🕰️", label: "Nostalgic" },
+                    { id: "party", emoji: "🎉", label: "Party" }
                 ];
                 this.watchlist = JSON.parse(localStorage.getItem('watchlist') || '[]');
                 this.watched = JSON.parse(localStorage.getItem('watched') || '[]');
@@ -913,7 +922,15 @@
 
             initializeGenres() {
                 const container = document.getElementById('genrePills');
-                container.innerHTML = this.genres.map(genre => `
+                this.updateGenres();
+            }
+
+            updateGenres() {
+                const container = document.getElementById('genrePills');
+                const contentType = document.querySelector('input[name="contentType"]:checked')?.value || '';
+                const genres = contentType === 'music' ? this.musicGenres : this.movieGenres;
+                
+                container.innerHTML = genres.map(genre => `
                     <button class="genre-pill" data-genre="${genre.toLowerCase()}">${genre}</button>
                 `).join('');
 
@@ -921,6 +938,10 @@
                 container.querySelectorAll('.genre-pill').forEach(pill => {
                     pill.addEventListener('click', () => this.toggleGenre(pill));
                 });
+
+                // Clear selected genres when switching content type
+                this.selectedGenres = [];
+                this.renderMovieTags();
             }
 
             initializeMoods() {
@@ -956,6 +977,25 @@
                 document.getElementById('tab-recommendations').onclick = () => this.switchTab('recommendations');
                 document.getElementById('tab-watchlist').onclick = () => this.switchTab('watchlist');
                 document.getElementById('tab-watched').onclick = () => this.switchTab('watched');
+
+                // Add event listeners for content type radio buttons
+                document.querySelectorAll('input[name="contentType"]').forEach(radio => {
+                    radio.addEventListener('change', () => {
+                        this.updateGenres();
+                        // Update input placeholder based on content type
+                        const contentType = radio.value;
+                        const input = document.getElementById('movieInput');
+                        if (contentType === 'music') {
+                            input.placeholder = 'Search for a song...';
+                        } else if (contentType === 'movies') {
+                            input.placeholder = 'Search for a movie...';
+                        } else if (contentType === 'tv_series') {
+                            input.placeholder = 'Search for a TV series...';
+                        } else {
+                            input.placeholder = 'Search for a movie or TV series...';
+                        }
+                    });
+                });
             }
 
             addMovie() {
@@ -1095,43 +1135,78 @@
             }
 
             renderRecommendationCards(recommendations) {
-                return recommendations.map(movie => `
-                    <div class="movie-card">
-                        <div class="movie-header">
-                            <div>
-                                <h3 class="movie-title">${movie.title}</h3>
-                                <div class="movie-year">${movie.tmdb_data?.release_date?.split('-')[0] || 'N/A'}</div>
+                return recommendations.map(item => {
+                    if (item.type === 'music') {
+                        return `
+                            <div class="movie-card">
+                                <div class="movie-header">
+                                    <div>
+                                        <h3 class="movie-title">${item.title}</h3>
+                                        <div class="movie-year">${item.artist}</div>
+                                    </div>
+                                    <div class="rating-badge">${item.listeners || 'N/A'} listeners</div>
+                                </div>
+                                ${item.image ? `
+                                    <img src="${item.image}" alt="${item.title}" style="
+                                        width: 100%;
+                                        height: auto;
+                                        border-radius: 10px;
+                                        margin-bottom: 1rem;
+                                    ">
+                                ` : ''}
+                                <p class="movie-description">${item.description || item.reasoning}</p>
+                                <div class="movie-tags-small">
+                                    ${item.tags ? item.tags.map(tag => `<span class="tag-small">${tag}</span>`).join('') : ''}
+                                </div>
+                                <div class="why-recommended">
+                                    <strong>Why this matches:</strong> ${item.reasoning}
+                                </div>
+                                <div class="quick-actions">
+                                    <button class="action-btn" onclick="app.addToWatchlist(${JSON.stringify(item).replace(/"/g, '&quot;')})">Add to Playlist</button>
+                                    <button class="action-btn" onclick="app.markAsWatched(${JSON.stringify(item).replace(/"/g, '&quot;')})">Mark as Listened</button>
+                                </div>
                             </div>
-                            <div class="rating-badge">${movie.omdb_data?.imdb_rating || 'N/A'}</div>
-                        </div>
-                        ${movie.poster_url ? `
-                            <img src="${movie.poster_url}" alt="${movie.title}" style="
-                                width: 100%;
-                                height: auto;
-                                border-radius: 10px;
-                                margin-bottom: 1rem;
-                            ">
-                        ` : ''}
-                        <p class="movie-description">${movie.omdb_data?.plot || movie.reasoning}</p>
-                        <div class="movie-tags-small">
-                            ${movie.genres.map(genre => `<span class="tag-small">${genre}</span>`).join('')}
-                        </div>
-                        ${movie.tmdb_data?.cast?.length ? `
-                            <div class="cast-info" style="margin-top: 1rem;">
-                                <strong>Cast:</strong> ${movie.tmdb_data.cast.map(actor => 
-                                    `${actor.name} (${actor.character})`
-                                ).join(', ')}
+                        `;
+                    } else {
+                        return `
+                            <div class="movie-card">
+                                <div class="movie-header">
+                                    <div>
+                                        <h3 class="movie-title">${item.title}</h3>
+                                        <div class="movie-year">${item.tmdb_data?.release_date?.split('-')[0] || 'N/A'}</div>
+                                    </div>
+                                    <div class="rating-badge">${item.omdb_data?.imdb_rating || 'N/A'}</div>
+                                </div>
+                                ${item.poster_url ? `
+                                    <img src="${item.poster_url}" alt="${item.title}" style="
+                                        width: 100%;
+                                        height: auto;
+                                        border-radius: 10px;
+                                        margin-bottom: 1rem;
+                                    ">
+                                ` : ''}
+                                <p class="movie-description">${item.omdb_data?.plot || item.reasoning}</p>
+                                <div class="movie-tags-small">
+                                    ${item.genres.map(genre => `<span class="tag-small">${genre}</span>`).join('')}
+                                </div>
+                                ${item.tmdb_data?.cast?.length ? `
+                                    <div class="cast-info" style="margin-top: 1rem;">
+                                        <strong>Cast:</strong> ${item.tmdb_data.cast.map(actor => 
+                                            `${actor.name} (${actor.character})`
+                                        ).join(', ')}
+                                    </div>
+                                ` : ''}
+                                <div class="why-recommended">
+                                    <strong>Why this matches:</strong> ${item.reasoning}
+                                </div>
+                                <div class="quick-actions">
+                                    <button class="action-btn" onclick="app.addToWatchlist(${JSON.stringify(item).replace(/"/g, '&quot;')})">Add to Watchlist</button>
+                                    <button class="action-btn" onclick="app.markAsWatched(${JSON.stringify(item).replace(/"/g, '&quot;')})">Mark as Watched</button>
+                                </div>
                             </div>
-                        ` : ''}
-                        <div class="why-recommended">
-                            <strong>Why this matches:</strong> ${movie.reasoning}
-                        </div>
-                        <div class="quick-actions">
-                            <button class="action-btn" onclick="app.addToWatchlist(${JSON.stringify(movie).replace(/"/g, '&quot;')})">Add to Watchlist</button>
-                            <button class="action-btn" onclick="app.markAsWatched(${JSON.stringify(movie).replace(/"/g, '&quot;')})">Mark as Watched</button>
-                        </div>
-                    </div>
-                `).join('');
+                        `;
+                    }
+                }).join('');
             }
 
             renderRecommendations(recommendations) {
