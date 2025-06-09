@@ -213,81 +213,114 @@
         }
 
         .filters-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
+            display: flex;
+            gap: 2rem;
             margin: 2rem 0;
+            flex-wrap: wrap;
+            justify-content: space-between;
         }
-
         .filter-group {
-            background: rgba(255, 255, 255, 0.5);
-            padding: 1.5rem;
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.7);
+            padding: 2rem 1.5rem 1.5rem 1.5rem;
+            border-radius: 20px;
+            border: 1px solid rgba(102, 126, 234, 0.08);
+            box-shadow: 0 4px 24px rgba(102, 126, 234, 0.07);
+            min-width: 220px;
+            flex: 1 1 220px;
+            margin-bottom: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            position: relative;
         }
-
         .filter-title {
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: var(--text-primary);
+            font-weight: 700;
+            margin-bottom: 1.2rem;
+            color: #4f4f6e;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
         }
-
+        .filter-title .icon {
+            font-size: 1.5rem;
+            opacity: 0.8;
+            margin-right: 0.3rem;
+        }
         .genre-pills {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.5rem;
+            gap: 0.7rem;
         }
-
         .genre-pill {
-            padding: 0.4rem 1rem;
-            border: 2px solid rgba(102, 126, 234, 0.3);
-            border-radius: 20px;
-            background: transparent;
+            padding: 0.5rem 1.2rem;
+            border-radius: 999px;
+            background: #f3f4fa;
+            color: #4f4f6e;
+            border: none;
+            font-size: 1rem;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
+            box-shadow: 0 1px 4px rgba(102,126,234,0.04);
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
         }
-
-        .genre-pill:hover {
-            border-color: #667eea;
-            background: rgba(102, 126, 234, 0.1);
+        .genre-pill:hover, .genre-pill.active {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(102,126,234,0.10);
         }
-
-        .genre-pill.active {
-            background: var(--primary);
-            color: white;
-            border-color: transparent;
-        }
-
         .mood-selector {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 1rem;
-            margin-top: 1rem;
+            margin-top: 0.5rem;
         }
-
-        .mood-option {
-            padding: 1rem;
-            text-align: center;
-            border-radius: 12px;
+        /* Custom radio buttons */
+        .custom-radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+        .custom-radio {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            font-size: 1rem;
             cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
+            position: relative;
         }
-
-        .mood-option.feel-good { background: var(--pastel-yellow); }
-        .mood-option.suspenseful { background: var(--pastel-pink); }
-        .mood-option.mind-bending { background: var(--pastel-purple); }
-        .mood-option.romantic { background: var(--pastel-green); }
-
-        .mood-option:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        .custom-radio input[type="radio"] {
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border: 2px solid #667eea;
+            border-radius: 50%;
+            outline: none;
+            background: #fff;
+            transition: border 0.2s;
+            margin-right: 0.5rem;
+            position: relative;
         }
-
-        .mood-option.active {
-            border-color: #667eea;
-            transform: translateY(-2px);
+        .custom-radio input[type="radio"]:checked {
+            border: 7px solid #667eea;
+            background: #e9eafe;
+        }
+        .custom-radio input[type="radio"]:focus {
+            box-shadow: 0 0 0 2px #a5b4fc;
+        }
+        .custom-radio:hover input[type="radio"] {
+            border-color: #4f4f6e;
+        }
+        @media (max-width: 1100px) {
+            .filters-grid {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+            .filter-group {
+                min-width: unset;
+                width: 100%;
+            }
         }
 
         .cta-button {
@@ -530,20 +563,29 @@
         }
 
         .modern-new-search {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.7rem;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
             color: #fff !important;
             border: none !important;
-            border-radius: 12px !important;
+            border-radius: 16px !important;
             font-weight: 600;
-            font-size: 1rem;
-            padding: 0.7rem 1.5rem;
+            font-size: 1.1rem;
+            padding: 0.9rem 2.2rem;
             box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
-            transition: background 0.3s, box-shadow 0.3s;
+            transition: background 0.3s, box-shadow 0.3s, transform 0.2s;
+            margin: 0 auto;
+            max-width: 320px;
+            width: 100%;
+            margin-bottom: 1.5rem;
         }
         .modern-new-search:hover {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
             box-shadow: 0 8px 24px rgba(245, 87, 108, 0.15);
             color: #fff;
+            transform: translateY(-2px) scale(1.03);
         }
 
         /* New styles */
@@ -636,6 +678,21 @@
             color: #666;
             display: none;
         }
+
+        @media (max-width: 600px) {
+            .modern-new-search {
+                font-size: 1rem;
+                padding: 0.8rem 1.2rem;
+                max-width: 95vw;
+            }
+            .filter-title {
+                font-size: 1rem;
+            }
+            .genre-pill {
+                font-size: 0.95rem;
+                padding: 0.4rem 1rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -668,16 +725,35 @@
 
             <div class="filters-grid">
                 <div class="filter-group">
-                    <div class="filter-title">Favorite Genres</div>
+                    <div class="filter-title"><span class="icon">🎬</span> Favorite Genres</div>
                     <div class="genre-pills" id="genrePills">
                         <!-- Genres will be populated dynamically -->
                     </div>
                 </div>
 
                 <div class="filter-group">
-                    <div class="filter-title">Current Mood</div>
+                    <div class="filter-title"><span class="icon">😊</span> Current Mood</div>
                     <div class="mood-selector" id="moodSelector">
                         <!-- Moods will be populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Content Type Filter -->
+                <div class="filter-group">
+                    <div class="filter-title"><span class="icon">🎞️</span> Content Type</div>
+                    <div class="custom-radio-group">
+                        <label class="custom-radio"><input type="radio" name="contentType" value="" checked> All</label>
+                        <label class="custom-radio"><input type="radio" name="contentType" value="movies"> Movies Only</label>
+                        <label class="custom-radio"><input type="radio" name="contentType" value="tv_series"> TV Series Only</label>
+                    </div>
+                </div>
+                <!-- Region Filter -->
+                <div class="filter-group">
+                    <div class="filter-title"><span class="icon">🌏</span> Region</div>
+                    <div class="custom-radio-group">
+                        <label class="custom-radio"><input type="radio" name="region" value="" checked> All</label>
+                        <label class="custom-radio"><input type="radio" name="region" value="hollywood"> Hollywood</label>
+                        <label class="custom-radio"><input type="radio" name="region" value="bollywood"> Bollywood</label>
                     </div>
                 </div>
             </div>
@@ -694,8 +770,8 @@
         <div class="main-card hidden" id="recommendationsSection">
             <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                 <h2 class="section-title">Your Personalized Recommendations</h2>
-                <button class="action-btn modern-new-search" onclick="app.resetSearch()">
-                    <span>🔄</span> New Search
+                <button class="modern-new-search" onclick="app.resetSearch()">
+                    <span style="font-size:1.3em;">🔄</span> <span>New Search</span>
                 </button>
             </div>
             <div class="recommendations-grid" id="recommendationsGrid">
@@ -857,6 +933,8 @@
                 document.getElementById('recommendationsSection').classList.add('hidden');
                 document.getElementById('loadingSection').classList.remove('hidden');
                 try {
+                    const contentType = document.querySelector('input[name="contentType"]:checked')?.value || '';
+                    const region = document.querySelector('input[name="region"]:checked')?.value || '';
                     const response = await fetch(`${this.API_URL}/api/recommend`, {
                         method: 'POST',
                         headers: {
@@ -868,7 +946,9 @@
                                 genres: this.selectedGenres,
                                 language: 'English',
                                 mood: this.selectedMood,
-                                page: this.currentPage
+                                page: this.currentPage,
+                                contentType,
+                                region
                             },
                             alreadyRecommended: this.shownMovies
                         })
