@@ -528,6 +528,23 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        .modern-new-search {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff !important;
+            border: none !important;
+            border-radius: 12px !important;
+            font-weight: 600;
+            font-size: 1rem;
+            padding: 0.7rem 1.5rem;
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+        .modern-new-search:hover {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            box-shadow: 0 8px 24px rgba(245, 87, 108, 0.15);
+            color: #fff;
+        }
     </style>
 </head>
 <body>
@@ -586,7 +603,7 @@
         <div class="main-card hidden" id="recommendationsSection">
             <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                 <h2 class="section-title">Your Personalized Recommendations</h2>
-                <button class="action-btn" onclick="app.resetSearch()">
+                <button class="action-btn modern-new-search" onclick="app.resetSearch()">
                     <span>🔄</span> New Search
                 </button>
             </div>
@@ -606,6 +623,7 @@
                 this.selectedGenres = [];
                 this.selectedMood = null;
                 this.currentPage = 1;
+                this.shownMovies = JSON.parse(localStorage.getItem('shownMovies') || '[]');
                 this.API_URL = 'https://backend-movie-recomendation.vercel.app';
                 this.genres = [
                     "Action", "Adventure", "Animation", "Comedy", "Crime", "Documentary",
@@ -663,25 +681,26 @@
                 const movieInput = document.getElementById('movieInput');
                 const addMovieBtn = document.getElementById('addMovieBtn');
                 const getMoreBtn = document.getElementById('getMoreRecs');
+                const newSearchBtn = document.querySelector('.section-header .action-btn');
 
                 movieInput.addEventListener('keypress', (e) => {
                     if (e.key === 'Enter') this.addMovie();
                 });
 
-                addMovieBtn.addEventListener('click', () => this.getRecommendations());
+                addMovieBtn.addEventListener('click', () => this.getRecommendations(true));
                 getMoreBtn.addEventListener('click', () => this.getMoreRecommendations());
+                if (newSearchBtn) {
+                    newSearchBtn.classList.add('modern-new-search');
+                }
             }
 
             addMovie() {
                 const input = document.getElementById('movieInput');
                 const movieTitle = input.value.trim();
-                
                 if (movieTitle && !this.selectedMovies.includes(movieTitle)) {
                     this.selectedMovies.push(movieTitle);
                     this.renderMovieTags();
                     input.value = '';
-                    
-                    // Add haptic feedback effect
                     input.style.transform = 'scale(0.95)';
                     setTimeout(() => input.style.transform = 'scale(1)', 150);
                 }
@@ -719,13 +738,21 @@
                 this.selectedMood = option.dataset.mood;
             }
 
-            async getRecommendations() {
+            async getRecommendations(autoAddInput = false) {
+                const input = document.getElementById('movieInput');
+                const movieTitle = input.value.trim();
+                if (autoAddInput && movieTitle && !this.selectedMovies.includes(movieTitle)) {
+                    this.selectedMovies.push(movieTitle);
+                    this.renderMovieTags();
+                    input.value = '';
+                }
                 if (this.selectedMovies.length < 1) {
                     alert('Please add at least one movie you enjoyed!');
                     return;
                 }
-
                 this.currentPage = 1;
+                this.shownMovies = [];
+                localStorage.setItem('shownMovies', JSON.stringify([]));
                 await this.fetchRecommendations();
             }
 
@@ -735,11 +762,9 @@
             }
 
             async fetchRecommendations(append = false) {
-                // Show loading state
                 document.getElementById('inputSection').classList.add('hidden');
                 document.getElementById('recommendationsSection').classList.add('hidden');
                 document.getElementById('loadingSection').classList.remove('hidden');
-
                 try {
                     const response = await fetch(`${this.API_URL}/api/recommend`, {
                         method: 'POST',
@@ -753,33 +778,33 @@
                                 language: 'English',
                                 mood: this.selectedMood,
                                 page: this.currentPage
-                            }
+                            },
+                            alreadyRecommended: this.shownMovies
                         })
                     });
-
                     if (!response.ok) {
                         throw new Error('Failed to get recommendations');
                     }
-
                     const data = await response.json();
-                    
+                    // Filter out duplicates
+                    const newRecs = data.recommendations.filter(
+                        rec => !this.shownMovies.includes(rec.title)
+                    );
+                    // Update shownMovies
+                    this.shownMovies = [...this.shownMovies, ...newRecs.map(r => r.title)];
+                    localStorage.setItem('shownMovies', JSON.stringify(this.shownMovies));
                     if (append) {
-                        // Append new recommendations to existing ones
                         const existingGrid = document.getElementById('recommendationsGrid');
-                        const newRecommendations = this.renderRecommendationCards(data.recommendations);
+                        const newRecommendations = this.renderRecommendationCards(newRecs);
                         existingGrid.insertAdjacentHTML('beforeend', newRecommendations);
                     } else {
-                        // Show new recommendations
-                        this.renderRecommendations(data.recommendations);
+                        this.renderRecommendations(newRecs);
                     }
-                    
-                    // Show recommendations
                     document.getElementById('loadingSection').classList.add('hidden');
                     document.getElementById('recommendationsSection').classList.remove('hidden');
                 } catch (error) {
                     console.error('Error:', error);
                     alert('Failed to get recommendations. Please try again.');
-                    // Reset UI state
                     document.getElementById('loadingSection').classList.add('hidden');
                     document.getElementById('inputSection').classList.remove('hidden');
                 }
@@ -795,7 +820,6 @@
                             </div>
                             <div class="rating-badge">${movie.omdb_data?.imdb_rating || 'N/A'}</div>
                         </div>
-                        
                         ${movie.poster_url ? `
                             <img src="${movie.poster_url}" alt="${movie.title}" style="
                                 width: 100%;
@@ -804,13 +828,10 @@
                                 margin-bottom: 1rem;
                             ">
                         ` : ''}
-                        
                         <p class="movie-description">${movie.omdb_data?.plot || movie.reasoning}</p>
-                        
                         <div class="movie-tags-small">
                             ${movie.genres.map(genre => `<span class="tag-small">${genre}</span>`).join('')}
                         </div>
-                        
                         ${movie.tmdb_data?.cast?.length ? `
                             <div class="cast-info" style="margin-top: 1rem;">
                                 <strong>Cast:</strong> ${movie.tmdb_data.cast.map(actor => 
@@ -818,11 +839,9 @@
                                 ).join(', ')}
                             </div>
                         ` : ''}
-                        
                         <div class="why-recommended">
                             <strong>Why this matches:</strong> ${movie.reasoning}
                         </div>
-                        
                         <div class="quick-actions">
                             <button class="action-btn">Add to Watchlist</button>
                             <button class="action-btn">👍 Like</button>
@@ -838,19 +857,16 @@
             }
 
             resetSearch() {
-                // Reset all selections
                 this.selectedMovies = [];
                 this.selectedGenres = [];
                 this.selectedMood = null;
                 this.currentPage = 1;
-
-                // Reset UI
+                this.shownMovies = [];
+                localStorage.setItem('shownMovies', JSON.stringify([]));
                 document.getElementById('movieTags').innerHTML = '';
                 document.getElementById('movieInput').value = '';
                 document.querySelectorAll('.genre-pill').forEach(pill => pill.classList.remove('active'));
                 document.querySelectorAll('.mood-option').forEach(opt => opt.classList.remove('active'));
-
-                // Show input section
                 document.getElementById('recommendationsSection').classList.add('hidden');
                 document.getElementById('inputSection').classList.remove('hidden');
             }
