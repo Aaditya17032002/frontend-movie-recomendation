@@ -693,6 +693,81 @@
                 padding: 0.4rem 1rem;
             }
         }
+
+        .nav-tabs {
+            display: flex;
+            gap: 18px;
+            justify-content: center;
+            margin-bottom: 2.5rem;
+            background: none;
+            border: none;
+        }
+
+        .nav-tabs button {
+            background: none;
+            border: none;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 500;
+            color: #4f4f6e;
+            opacity: 1;
+            padding: 0.7rem 2.2rem 0.7rem 2.2rem;
+            border-radius: 999px;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            position: relative;
+            box-shadow: none;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-tabs button .tab-icon {
+            margin-right: 0.7em;
+            font-size: 1.2em;
+            display: inline-block;
+            filter: none;
+        }
+
+        .nav-tabs button.active,
+        .nav-tabs button:hover {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.10);
+            font-weight: 600;
+        }
+
+        .nav-tabs button.active::after {
+            content: '';
+            display: block;
+            position: absolute;
+            left: 30%;
+            right: 30%;
+            bottom: 7px;
+            height: 3px;
+            border-radius: 2px;
+            background: #fff;
+            opacity: 0.8;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 2;
+        }
+
+        @media (max-width: 600px) {
+            .nav-tabs {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .nav-tabs button {
+                width: 100%;
+                text-align: center;
+            }
+            .nav-tabs button.active::after {
+                left: 20%;
+                right: 20%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -709,7 +784,15 @@
             <p class="tagline">Discover your next favorite movie with AI-powered recommendations</p>
         </header>
 
-        <div class="main-card" id="inputSection">
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button id="tab-recommendations" class="active"><span class="tab-icon">🎬</span>Recommendations</button>
+            <button id="tab-watchlist"><span class="tab-icon">⭐</span>Watchlist</button>
+            <button id="tab-watched"><span class="tab-icon">✅</span>Watched</button>
+        </div>
+
+        <!-- Main Content Sections -->
+        <div id="inputSection" class="main-card">
             <h2 class="section-title">Tell us what you love</h2>
             
             <div class="input-group">
@@ -759,7 +842,7 @@
             </div>
         </div>
 
-        <div class="main-card hidden" id="loadingSection">
+        <div id="loadingSection" class="main-card hidden">
             <div class="loading">
                 <div class="spinner"></div>
                 <h3>Analyzing your taste...</h3>
@@ -767,7 +850,7 @@
             </div>
         </div>
 
-        <div class="main-card hidden" id="recommendationsSection">
+        <div id="recommendationsSection" class="main-card hidden">
             <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                 <h2 class="section-title">Your Personalized Recommendations</h2>
                 <button class="modern-new-search" onclick="app.resetSearch()">
@@ -780,6 +863,14 @@
             <button class="cta-button" id="getMoreRecs">
                 <span>🔄</span> Get More Recommendations
             </button>
+        </div>
+        <div id="watchlistSection" class="main-card hidden">
+            <h2 class="section-title">My Watchlist</h2>
+            <div class="recommendations-grid" id="watchlistGrid"></div>
+        </div>
+        <div id="watchedSection" class="main-card hidden">
+            <h2 class="section-title">Already Watched</h2>
+            <div class="recommendations-grid" id="watchedGrid"></div>
         </div>
     </div>
 
@@ -807,6 +898,9 @@
                     { id: "emotional", emoji: "🥹", label: "Emotional" },
                     { id: "adventurous", emoji: "🏃", label: "Adventurous" }
                 ];
+                this.watchlist = JSON.parse(localStorage.getItem('watchlist') || '[]');
+                this.watched = JSON.parse(localStorage.getItem('watched') || '[]');
+                this.activeTab = 'recommendations';
                 this.init();
             }
 
@@ -859,6 +953,9 @@
                 if (newSearchBtn) {
                     newSearchBtn.classList.add('modern-new-search');
                 }
+                document.getElementById('tab-recommendations').onclick = () => this.switchTab('recommendations');
+                document.getElementById('tab-watchlist').onclick = () => this.switchTab('watchlist');
+                document.getElementById('tab-watched').onclick = () => this.switchTab('watched');
             }
 
             addMovie() {
@@ -1014,9 +1111,8 @@
                             <strong>Why this matches:</strong> ${movie.reasoning}
                         </div>
                         <div class="quick-actions">
-                            <button class="action-btn">Add to Watchlist</button>
-                            <button class="action-btn">👍 Like</button>
-                            <button class="action-btn">More Info</button>
+                            <button class="action-btn" onclick="app.addToWatchlist(${JSON.stringify(movie).replace(/"/g, '&quot;')})">Add to Watchlist</button>
+                            <button class="action-btn" onclick="app.markAsWatched(${JSON.stringify(movie).replace(/"/g, '&quot;')})">Mark as Watched</button>
                         </div>
                     </div>
                 `).join('');
@@ -1061,6 +1157,81 @@
                     particle.style.animationDuration = (Math.random() * 4 + 4) + 's';
                     particles.appendChild(particle);
                 }
+            }
+
+            switchTab(tab) {
+                this.activeTab = tab;
+                document.getElementById('tab-recommendations').classList.remove('active');
+                document.getElementById('tab-watchlist').classList.remove('active');
+                document.getElementById('tab-watched').classList.remove('active');
+                document.getElementById('recommendationsSection').classList.add('hidden');
+                document.getElementById('watchlistSection').classList.add('hidden');
+                document.getElementById('watchedSection').classList.add('hidden');
+                if (tab === 'recommendations') {
+                    document.getElementById('tab-recommendations').classList.add('active');
+                    document.getElementById('recommendationsSection').classList.remove('hidden');
+                } else if (tab === 'watchlist') {
+                    document.getElementById('tab-watchlist').classList.add('active');
+                    document.getElementById('watchlistSection').classList.remove('hidden');
+                    this.renderWatchlist();
+                } else if (tab === 'watched') {
+                    document.getElementById('tab-watched').classList.add('active');
+                    document.getElementById('watchedSection').classList.remove('hidden');
+                    this.renderWatched();
+                }
+            }
+
+            addToWatchlist(movie) {
+                if (!this.watchlist.some(m => m.title === movie.title)) {
+                    this.watchlist.push(movie);
+                    localStorage.setItem('watchlist', JSON.stringify(this.watchlist));
+                    this.renderWatchlist();
+                    alert('Added to watchlist!');
+                }
+            }
+
+            markAsWatched(movie) {
+                if (!this.watched.some(m => m.title === movie.title)) {
+                    this.watched.push(movie);
+                    localStorage.setItem('watched', JSON.stringify(this.watched));
+                    // Remove from watchlist if present
+                    this.watchlist = this.watchlist.filter(m => m.title !== movie.title);
+                    localStorage.setItem('watchlist', JSON.stringify(this.watchlist));
+                    this.renderWatchlist();
+                    this.renderWatched();
+                    alert('Marked as watched!');
+                }
+            }
+
+            renderWatchlist() {
+                const grid = document.getElementById('watchlistGrid');
+                if (!this.watchlist.length) {
+                    grid.innerHTML = '<div style="text-align:center;">Your watchlist is empty.</div>';
+                    return;
+                }
+                grid.innerHTML = this.watchlist.map(movie => `
+                    <div class="movie-card">
+                        ${movie.poster_url ? `<img src="${movie.poster_url}" alt="${movie.title}" style="width:100%;height:auto;border-radius:10px;margin-bottom:1rem;">` : ''}
+                        <h4>${movie.title}</h4>
+                        <div class="movie-actions">
+                            <button onclick="app.markAsWatched(${JSON.stringify(movie).replace(/"/g, '&quot;')})">Mark as Watched</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            renderWatched() {
+                const grid = document.getElementById('watchedGrid');
+                if (!this.watched.length) {
+                    grid.innerHTML = '<div style="text-align:center;">No watched movies yet.</div>';
+                    return;
+                }
+                grid.innerHTML = this.watched.map(movie => `
+                    <div class="movie-card">
+                        ${movie.poster_url ? `<img src="${movie.poster_url}" alt="${movie.title}" style="width:100%;height:auto;border-radius:10px;margin-bottom:1rem;">` : ''}
+                        <h4>${movie.title}</h4>
+                    </div>
+                `).join('');
             }
         }
 
