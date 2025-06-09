@@ -1003,29 +1003,6 @@
             }
 
             async getRecommendations(autoAddInput = false) {
-                const input = document.getElementById('movieInput');
-                const movieTitle = input.value.trim();
-                if (autoAddInput && movieTitle && !this.selectedMovies.includes(movieTitle)) {
-                    this.selectedMovies.push(movieTitle);
-                    this.renderMovieTags();
-                    input.value = '';
-                }
-                if (this.selectedMovies.length < 1) {
-                    alert('Please add at least one movie you enjoyed!');
-                    return;
-                }
-                this.currentPage = 1;
-                this.shownMovies = [];
-                localStorage.setItem('shownMovies', JSON.stringify([]));
-                await this.fetchRecommendations();
-            }
-
-            async getMoreRecommendations() {
-                this.currentPage++;
-                await this.fetchRecommendations(true);
-            }
-
-            async fetchRecommendations(append = false) {
                 document.getElementById('inputSection').classList.add('hidden');
                 document.getElementById('recommendationsSection').classList.add('hidden');
                 document.getElementById('loadingSection').classList.remove('hidden');
@@ -1047,16 +1024,21 @@
                                 contentType,
                                 region
                             },
-                            alreadyRecommended: this.shownMovies
+                            alreadyRecommended: this.shownMovies,
+                            excludeMovies: [...this.watchlist.map(m => m.title), ...this.watched.map(m => m.title)]
                         })
                     });
                     if (!response.ok) {
                         throw new Error('Failed to get recommendations');
                     }
                     const data = await response.json();
-                    // Filter out duplicates
-                    const newRecs = data.recommendations.filter(
-                        rec => !this.shownMovies.includes(rec.title)
+                    // Filter out duplicates and movies in watchlist/watched
+                    const watchlistTitles = new Set(this.watchlist.map(m => m.title.toLowerCase()));
+                    const watchedTitles = new Set(this.watched.map(m => m.title.toLowerCase()));
+                    const newRecs = data.recommendations.filter(rec => 
+                        !this.shownMovies.includes(rec.title) &&
+                        !watchlistTitles.has(rec.title.toLowerCase()) &&
+                        !watchedTitles.has(rec.title.toLowerCase())
                     );
                     // Update shownMovies
                     this.shownMovies = [...this.shownMovies, ...newRecs.map(r => r.title)];
