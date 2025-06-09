@@ -1137,24 +1137,26 @@
             renderRecommendationCards(recommendations) {
                 return recommendations.map(item => {
                     if (item.type === 'music') {
+                        // Truncate description to 120 chars
+                        const shortDesc = (item.description || item.reasoning || '').length > 120 ?
+                            (item.description || item.reasoning).slice(0, 120) + '...' :
+                            (item.description || item.reasoning);
                         return `
                             <div class="movie-card">
                                 <div class="movie-header">
                                     <div>
                                         <h3 class="movie-title">${item.title}</h3>
-                                        <div class="movie-year">${item.artist}</div>
+                                        <div class="movie-year">🎵 ${item.artist}</div>
                                     </div>
-                                    <div class="rating-badge">${item.listeners || 'N/A'} listeners</div>
+                                    <div class="rating-badge">👥 ${item.listeners || 'N/A'} listeners</div>
                                 </div>
-                                ${item.image ? `
-                                    <img src="${item.image}" alt="${item.title}" style="
-                                        width: 100%;
-                                        height: auto;
-                                        border-radius: 10px;
-                                        margin-bottom: 1rem;
-                                    ">
-                                ` : ''}
-                                <p class="movie-description">${item.description || item.reasoning}</p>
+                                <img src="${item.image || 'https://via.placeholder.com/500x500?text=No+Image'}" alt="${item.title}" style="
+                                    width: 100%;
+                                    height: auto;
+                                    border-radius: 10px;
+                                    margin-bottom: 1rem;
+                                ">
+                                <p class="movie-description">${shortDesc}</p>
                                 <div class="movie-tags-small">
                                     ${item.tags ? item.tags.map(tag => `<span class="tag-small">${tag}</span>`).join('') : ''}
                                 </div>
