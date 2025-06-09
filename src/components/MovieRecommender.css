@@ -1,0 +1,195 @@
+.movie-recommender {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 30px;
+}
+
+.filter-section {
+    background: #f5f5f5;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.filter-section h3 {
+    margin-top: 0;
+    color: #444;
+}
+
+.radio-group {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.radio-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.input-section {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.input-section input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+button {
+    padding: 10px 20px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s;
+}
+
+button:hover {
+    background: #0056b3;
+}
+
+button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.liked-movies {
+    margin-bottom: 20px;
+}
+
+.liked-movies ul {
+    list-style: none;
+    padding: 0;
+}
+
+.liked-movies li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: #f9f9f9;
+    margin-bottom: 5px;
+    border-radius: 4px;
+}
+
+.liked-movies button {
+    background: #dc3545;
+    padding: 5px 10px;
+    font-size: 14px;
+}
+
+.liked-movies button:hover {
+    background: #c82333;
+}
+
+.get-recommendations {
+    display: block;
+    width: 100%;
+    max-width: 300px;
+    margin: 20px auto;
+    padding: 15px;
+    font-size: 18px;
+}
+
+.error {
+    color: #dc3545;
+    text-align: center;
+    margin: 20px 0;
+    padding: 10px;
+    background: #f8d7da;
+    border-radius: 4px;
+}
+
+.recommendations {
+    margin-top: 30px;
+}
+
+.recommendations h3 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.recommendations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.recommendation-card {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: transform 0.3s;
+}
+
+.recommendation-card:hover {
+    transform: translateY(-5px);
+}
+
+.recommendation-card img {
+    width: 100%;
+    height: 375px;
+    object-fit: cover;
+}
+
+.recommendation-card h4 {
+    margin: 10px;
+    color: #333;
+}
+
+.recommendation-card .type {
+    margin: 5px 10px;
+    color: #666;
+    font-size: 14px;
+}
+
+.recommendation-card .reasoning {
+    margin: 10px;
+    color: #555;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 10px;
+}
+
+.genre-tag {
+    background: #e9ecef;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    color: #495057;
+}
+
+@media (max-width: 768px) {
+    .radio-group {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .recommendations-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+} 
