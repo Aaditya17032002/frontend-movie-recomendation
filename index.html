@@ -1003,6 +1003,29 @@
             }
 
             async getRecommendations(autoAddInput = false) {
+                const input = document.getElementById('movieInput');
+                const movieTitle = input.value.trim();
+                if (autoAddInput && movieTitle && !this.selectedMovies.includes(movieTitle)) {
+                    this.selectedMovies.push(movieTitle);
+                    this.renderMovieTags();
+                    input.value = '';
+                }
+                if (this.selectedMovies.length < 1) {
+                    alert('Please add at least one movie you enjoyed!');
+                    return;
+                }
+                this.currentPage = 1;
+                this.shownMovies = [];
+                localStorage.setItem('shownMovies', JSON.stringify([]));
+                await this.fetchRecommendations(false);
+            }
+
+            async getMoreRecommendations() {
+                this.currentPage++;
+                await this.fetchRecommendations(true);
+            }
+
+            async fetchRecommendations(append = false) {
                 document.getElementById('inputSection').classList.add('hidden');
                 document.getElementById('recommendationsSection').classList.add('hidden');
                 document.getElementById('loadingSection').classList.remove('hidden');
@@ -1028,10 +1051,18 @@
                             excludeMovies: [...this.watchlist.map(m => m.title), ...this.watched.map(m => m.title)]
                         })
                     });
+                    
                     if (!response.ok) {
                         throw new Error('Failed to get recommendations');
                     }
+                    
                     const data = await response.json();
+                    console.log('Received recommendations:', data); // Debug log
+                    
+                    if (!data.recommendations || !Array.isArray(data.recommendations)) {
+                        throw new Error('Invalid response format');
+                    }
+                    
                     // Filter out duplicates and movies in watchlist/watched
                     const watchlistTitles = new Set(this.watchlist.map(m => m.title.toLowerCase()));
                     const watchedTitles = new Set(this.watched.map(m => m.title.toLowerCase()));
@@ -1040,9 +1071,11 @@
                         !watchlistTitles.has(rec.title.toLowerCase()) &&
                         !watchedTitles.has(rec.title.toLowerCase())
                     );
+                    
                     // Update shownMovies
                     this.shownMovies = [...this.shownMovies, ...newRecs.map(r => r.title)];
                     localStorage.setItem('shownMovies', JSON.stringify(this.shownMovies));
+                    
                     if (append) {
                         const existingGrid = document.getElementById('recommendationsGrid');
                         const newRecommendations = this.renderRecommendationCards(newRecs);
@@ -1050,6 +1083,7 @@
                     } else {
                         this.renderRecommendations(newRecs);
                     }
+                    
                     document.getElementById('loadingSection').classList.add('hidden');
                     document.getElementById('recommendationsSection').classList.remove('hidden');
                 } catch (error) {
